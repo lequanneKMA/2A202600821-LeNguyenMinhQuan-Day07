@@ -1,0 +1,231 @@
+Title: Live Content
+
+Description: Fetched live
+
+Source: https://raw.githubusercontent.com/pandas-dev/pandas/main/doc/source/user_guide/missing_data.rst
+
+---
+
+.. _missing_data:
+
+{{ header }}
+
+*************************
+Working with missing data
+*************************
+
+Values considered "missing"
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+pandas uses different sentinel values to represent a missing (also referred to as NA)
+depending on the data type.
+
+``numpy.nan`` for NumPy data types. The disadvantage of using NumPy data types
+is that the original data type will be coerced to ``np.float64`` or ``object``.
+
+.. ipython:: python
+
+   pd.Series([1, 2], dtype=np.int64).reindex([0, 1, 2])
+   pd.Series([True, False], dtype=np.bool_).reindex([0, 1, 2])
+
+:class:`NaT` for NumPy ``np.datetime64``, ``np.timedelta64``, and :class:`PeriodDtype`. For typing applications,
+use :class:`api.typing.NaTType`.
+
+.. ipython:: python
+
+   pd.Series([1, 2], dtype=np.dtype("timedelta64[ns]")).reindex([0, 1, 2])
+   pd.Series([1, 2], dtype=np.dtype("datetime64[ns]")).reindex([0, 1, 2])
+   pd.Series(["2020", "2020"], dtype=pd.PeriodDtype("D")).reindex([0, 1, 2])
+
+:class:`NA` for :class:`StringDtype`, :class:`Int64Dtype` (and other bit widths),
+:class:`Float64Dtype` (and other bit widths), :class:`BooleanDtype` and :class:`ArrowDtype`.
+These types will maintain the original data type of the data.
+For typing applications, use :class:`api.typing.NAType`.
+
+.. ipython:: python
+
+   pd.Series([1, 2], dtype="Int64").reindex([0, 1, 2])
+   pd.Series([True, False], dtype="boolean[pyarrow]").reindex([0, 1, 2])
+
+To detect these missing value, use the :func:`isna` or :func:`notna` methods.
+
+.. ipython:: python
+
+   ser = pd.Series([pd.Timestamp("2020-01-01"), pd.NaT])
+   ser
+   pd.isna(ser)
+
+
+.. note::
+
+   :func:`isna` or :func:`notna` will also consider ``None`` a missing value.
+
+   .. ipython:: python
+
+      ser = pd.Series([1, None], dtype=object)
+      ser
+      pd.isna(ser)
+
+.. warning::
+
+   Equality comparisons between ``np.nan``, :class:`NaT`, and :class:`NA`
+   do not act like ``None``
+
+   .. ipython:: python
+
+      None == None  # noqa: E711
+      np.nan == np.nan
+      pd.NaT == pd.NaT
+      pd.NA == pd.NA
+
+   Therefore, an equality comparison between a :class:`DataFrame` or :class:`Series`
+   with one of these missing values does not provide the same information as
+   :func:`isna` or :func:`notna`.
+
+   .. ipython:: python
+
+      ser = pd.Series([True, None], dtype="boolean[pyarrow]")
+      ser == pd.NA
+      pd.isna(ser)
+
+
+.. _missing_data.NA:
+
+:class:`NA` semantics
+~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   :class:`NA` is the missing-value sentinel for nullable dtypes. Its
+   behaviour in some edge cases may still change in future releases.
+
+:class:`NA` is a scalar (singleton) used to represent missing values for
+nullable dtypes. The goal of :class:`NA` is to provide a "missing" indicator
+that can be used consistently across data types (instead of ``np.nan``,
+``None`` or ``pd.NaT`` depending on the data type).
+
+For example, when having missing values in a :class:`Series` with the nullable integer
+dtype, it will use :class:`NA`:
+
+.. ipython:: python
+
+    s = pd.Series([1, 2, None], dtype="Int64")
+    s
+    s[2]
+    s[2] is pd.NA
+
+Currently, pandas does not use those data types using :class:`NA` by default in
+a :class:`DataFrame` or :class:`Series`, so you need to specify
+the dtype explicitly. An easy way to convert to those dtypes is explained in the
+:ref:`conversion section <missing_data.NA.conversion>`.
+
+Propagation in arithmetic and comparison operations
+---------------------------------------------------
+
+In general, missing values *propagate* in operations involving :class:`NA`. When
+one of the operands is unknown, the outcome of the operation is also unknown.
+
+For example, :class:`NA` propagates in arithmetic operations, similarly to
+``np.nan``:
+
+.. ipython:: python
+
+   pd.NA + 1
+   "a" * pd.NA
+
+There are a few special cases when the result is known, even when one of the
+operands is ``NA``.
+
+.. ipython:: python
+
+   pd.NA ** 0
+   1 ** pd.NA
+
+In equality and comparison operations, :class:`NA` also propagates. This deviates
+from the behaviour of ``np.nan``, where comparisons with ``np.nan`` always
+return ``False``.
+
+.. ipython:: python
+
+   pd.NA == 1
+   pd.NA == pd.NA
+   pd.NA < 2.5
+
+To check if a value is equal to :class:`NA`, use :func:`isna`
+
+.. ipython:: python
+
+   pd.isna(pd.NA)
+
+
+.. note::
+
+   An exception on this basic propagation rule are *reductions* (such as the
+   mean or the minimum), where pandas defaults to skipping missing values. See the
+   :ref:`calculation section <missing_data.calculations>` for more.
+
+Logical operations
+------------------
+
+For logical operations, :class:`NA` follows the rules of the
+`three-valued logic <https://en.wikipedia.org/wiki/Three-valued_logic>`__ (or
+*Kleene logic*, similarly to R, SQL and Julia). This logic means to only
+propagate missing values when it is logically required.
+
+For example, for the logical "or" operation (``|``), if one of the operands
+is ``True``, we already know the result will be ``True``, regardless of the
+other value (so regardless the missing value would be ``True`` or ``False``).
+In this case, :class:`NA` does not propagate:
+
+.. ipython:: python
+
+   True | False
+   True | pd.NA
+   pd.NA | True
+
+On the other hand, if one of the operands is ``False``, the result depends
+on the value of the other operand. Therefore, in this case :class:`NA`
+propagates:
+
+.. ipython:: python
+
+   False | True
+   False | False
+   False | pd.NA
+
+The behaviour of the logical "and" operation (``&``) can be derived using
+similar logic (where now :class:`NA` will not propagate if one of the operands
+is already ``False``):
+
+.. ipython:: python
+
+   False & True
+   False & False
+   False & pd.NA
+
+.. ipython:: python
+
+   True & True
+   True & False
+   True & pd.NA
+
+
+``NA`` in a boolean context
+---------------------------
+
+Since the actual value of an NA is unknown, it is ambiguous to convert NA
+to a boolean value.
+
+.. ipython:: python
+   :okexcept:
+
+   bool(pd.NA)
+
+This also means that :class:`NA` cannot be used in a context where it is
+evaluated to a boolean, such as ``if condition: ...`` where ``condition`` can
+potentially be :class:`NA`. In such cases, :func:`isna` can be used to check
+for :class:`NA` or ``condition`` being :class:`NA` can be avoided, for example by
+filling missing values beforehand.
+
+For the same reason, the Python keywords ``and``, ``or``, and
+

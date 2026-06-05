@@ -1,0 +1,65 @@
+<h1>FAQ</h1>
+
+<h2>Why do I need to sign in?</h2>
+<p>Docker Sandboxes is built around the idea that you and your agents are a team.
+Signing in gives each sandbox a verified identity, which lets Docker:</p>
+<ul>
+  <li><strong>Tie sandboxes to a real person.</strong> Governance matters when agents can build containers, install packages, and push code. Your Docker identity is the anchor.</li>
+  <li><strong>Enable team features.</strong> Team-scale features like <a href="/ai/sandboxes/faq/governance/org/">organization governance</a>, shared environments, and audit logs need a concept of "who," and adding that later would be worse for everyone.</li>
+  <li><strong>Authenticate against Docker infrastructure.</strong> Sandboxes pull images, run daemons, and talk to Docker services. A Docker account makes that seamless.</li>
+</ul>
+<p>Your Docker account email is only used for authentication, not marketing.</p>
+
+<h2>Can I enforce sandbox policies across my organization?</h2>
+<p>Yes. Admins can centrally manage network and filesystem policies from the Docker Admin Console. Rules defined there apply to every sandbox in the organization. When organization governance is active, it replaces local rules set with <code>sbx policy</code> — local rules are no longer evaluated.</p>
+<p>See <a href="/ai/sandboxes/faq/governance/org/">Organization governance</a>. This feature requires a separate paid subscription — <a href="https://www.docker.com/products/ai-governance/#contact-sales">contact Docker Sales</a> to get started.</p>
+
+<h2>Does the CLI collect telemetry?</h2>
+<p>The <code>sbx</code> CLI collects basic usage data about CLI invocations:</p>
+<ul>
+  <li>Which command you ran</li>
+  <li>Whether it succeeded or failed</li>
+  <li>How long it took</li>
+  <li>If you're signed in, your Docker username is included</li>
+</ul>
+<p>Docker Sandboxes doesn't monitor sessions, read your prompts, or access your code. Your code stays in the sandbox and on your host.</p>
+<p>To opt out of all analytics, set the <code>SBX_NO_TELEMETRY</code> environment variable:</p>
+<pre><code class="language-console">$ export SBX_NO_TELEMETRY=1</code></pre>
+
+<h2>How do I set custom environment variables inside a sandbox?</h2>
+<p>The <a href="/reference/cli/sbx/secret/"><code>sbx secret</code></a> command only supports a fixed set of <a href="/ai/sandboxes/faq/security/credentials/#built-in-services">services</a> (Anthropic, OpenAI, GitHub, and others). If your agent needs an environment variable that isn't tied to a supported service, such as <code>BRAVE_API_KEY</code> or a custom internal token, write it to <code>/etc/sandbox-persistent.sh</code> inside the sandbox. This file is sourced on every shell login, so the variable persists across agent sessions for the sandbox's lifetime.</p>
+<p>Use <code>sbx exec</code> to append the export:</p>
+<pre><code class="language-console">$ sbx exec -d &lt;sandbox-name&gt; bash -c "echo 'export BRAVE_API_KEY=your_key' &gt;&gt; /etc/sandbox-persistent.sh"</code></pre>
+<p>The <code>bash -c</code> wrapper is required so the <code>&gt;&gt;</code> redirect runs inside the sandbox instead of on your host.</p>
+<blockquote>
+  <p><strong>NOTE:</strong> Unlike <code>sbx secret</code>, which injects credentials through a host-side proxy without exposing them to the agent, this approach stores the value inside the sandbox. The agent process can read it directly. Only use this for credentials where proxy-based injection isn't available.</p>
+</blockquote>
+<p>Variables in <code>/etc/sandbox-persistent.sh</code> are sourced automatically when bash runs inside the sandbox, including interactive sessions and agents started with <code>sbx run</code>. If you run a command directly with <code>sbx exec &lt;name&gt; &lt;command&gt;</code>, the command runs without a shell, so the persistent environment file is not sourced. Wrap the command in <code>bash -c</code> to load the environment:</p>
+<pre><code class="language-console">$ sbx exec &lt;sandbox-name&gt; bash -c "your-command"</code></pre>
+<p>To verify the variable is set, open a shell in the sandbox:</p>
+<pre><code class="language-console">$ sbx exec -it &lt;sandbox-name&gt; bash
+$ echo $BRAVE_API_KEY</code></pre>
+
+<h2>Why do agents run without approval prompts?</h2>
+<p>The sandbox itself is the safety boundary. Because agents run inside an isolated microVM with <a href="/ai/sandboxes/faq/governance">network policies</a>, <a href="/ai/sandboxes/faq/security/credentials/">credential isolation</a>, and no access to your host system outside the workspace, the usual reasons for approval prompts (preventing destructive commands, network access, file modifications) are handled by the sandbox isolation layers instead.</p>
+<p>If you prefer to re-enable approval prompts, change the permission mode inside the session. Most agents let you switch permission modes after startup. In Claude Code, use the <code>/permissions</code> command to change the mode interactively.</p>
+<p>To make approval prompts the default for every session, define a custom agent kit that overrides the agent's entrypoint to drop the permission-skipping flag. For example, a kit that launches Claude Code without <code>--dangerously-skip-permissions</code>:</p>
+<pre><code class="language-yaml">schemaVersion: "1"
+kind: agent
+name: claude-safe
+agent:
+  image: "docker/sandbox-templates:claude-code-docker"
+  entrypoint:
+    run: [claude]</code></pre>
+<p>Run it with <code>sbx run claude-safe --kit ./claude-safe/</code>. See <a href="/ai/sandboxes/faq/customize/kits/#agent-kits">Agent kits</a> for the full pattern.</p>
+
+<h2>How do I know if my agent is running in a sandbox?</h2>
+<p>Ask the agent. The agent can see whether or not it's running inside a sandbox. In Claude Code, use the <code>/btw</code> slash command to ask without interrupting an in-progress task:</p>
+<pre><code class="language-text">/btw are you running in a sandbox?</code></pre>
+
+<h2>Why doesn't the sandbox use my user-level agent configuration?</h2>
+<p>Sandboxes don't pick up user-level agent configuration from your host. This includes directories like <code>~/.claude</code> for Claude Code or <code>~/.codex</code> for Codex, where hooks, skills, and other settings are stored. Only project-level configuration in the working directory is available inside the sandbox.</p>
+<p>To make configuration available in a sandbox, copy or move what you need into your project directory before starting a session:</p>
+<pre><code class="language-console">$ cp -r ~/.claude/skills .claude/skills</code></pre>
+<p>Don't use symlinks — a sandboxed agent can't follow symlinks to paths outside the sandbox.</p>
+<p>Collocating skills and other agent configuration with the project itself is a good practice regardless of sandboxes. It's versioned alongside the code and evolves with the project as it changes.</p>

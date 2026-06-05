@@ -1,0 +1,61 @@
+{
+  "metadata": {
+    "category": "programming",
+    "difficulty": "beginner",
+    "tags": ["python", "basics", "faq", "syntax", "functions"]
+  },
+  "title": "Python Basics FAQ",
+  "description": "Tài liệu này tổng hợp các câu hỏi và giải đáp chi tiết về các khái niệm cơ bản nhất trong Python. Rất hữu ích cho những người mới bắt đầu làm quen với ngôn ngữ lập trình này.",
+  "faqs": [
+    {
+      "section": "1. Các Câu Hỏi Về Kiểu Dữ Liệu (Data Types)",
+      "question": "Python có những kiểu dữ liệu cơ bản nào?",
+      "answer": "Python có các nhóm kiểu dữ liệu chính sau:\n- **Kiểu số (Numeric Types):** \n  - `int`: Số nguyên (ví dụ: `10`, `-3`).\n  - `float`: Số thực (ví dụ: `3.14`, `-0.001`).\n  - `complex`: Số phức (ví dụ: `3 + 4j`).\n- **Kiểu văn bản (Text Type):** `str` (chuỗi ký tự, ví dụ: `\"Hello World\"`).\n- **Kiểu logic (Boolean Type):** `bool` (`True` hoặc `False`).\n- **Kiểu tập hợp dữ liệu (Sequence Types):**\n  - `list`: Danh sách có thể thay đổi (Mutable) (ví dụ: `[1, 2, \"a\"]`).\n  - `tuple`: Danh sách không thể thay đổi (Immutable) sau khi khởi tạo (ví dụ: `(1, 2, \"a\")`).\n- **Kiểu ánh xạ (Mapping Type):** `dict` (Từ điển, lưu trữ dưới dạng key-value, ví dụ: `{\"name\": \"Alice\", \"age\": 25}`)."
+    },
+    {
+      "section": "1. Các Câu Hỏi Về Kiểu Dữ Liệu (Data Types)",
+      "question": "Sự khác biệt giữa `list` và `tuple` là gì?",
+      "answer": "Sự khác biệt lớn nhất nằm ở tính **Mutability** (khả năng thay đổi nội dung):\n- **List:** Có thể thêm, sửa, xóa phần tử sau khi đã tạo ra (`mutable`). Ký hiệu bằng ngoặc vuông `[]`.\n- **Tuple:** **Không thể** thay đổi nội dung sau khi khởi tạo (`immutable`). Tốc độ duyệt qua tuple nhanh hơn list. Ký hiệu bằng ngoặc tròn `()`."
+    },
+    {
+      "section": "1. Các Câu Hỏi Về Kiểu Dữ Liệu (Data Types)",
+      "question": "Làm thế nào để kiểm tra kiểu dữ liệu của một biến?",
+      "answer": "Bạn sử dụng hàm `type()`.\n```python\nx = 10\nprint(type(x))  # <class 'int'>\n```"
+    },
+    {
+      "section": "2. Các Câu Hỏi Về Vòng Lặp (Loops)",
+      "question": "Khi nào nên sử dụng vòng lặp `for`, khi nào nên sử dụng `while`?",
+      "answer": "- **Vòng lặp `for`:** Thường được sử dụng khi bạn **đã biết trước số lần lặp** hoặc cần duyệt qua các phần tử của một tập hợp (list, tuple, dictionary, string).\n  ```python\n  for item in [1, 2, 3]:\n      print(item)\n  ```\n- **Vòng lặp `while`:** Thường được sử dụng khi bạn **chưa biết trước số vòng lặp**, mà điều kiện dừng lại phụ thuộc vào một trạng thái nào đó. Vòng lặp sẽ tiếp tục chạy chừng nào điều kiện còn trả về `True`.\n  ```python\n  count = 0\n  while count < 3:\n      print(count)\n      count += 1\n  ```"
+    },
+    {
+      "section": "2. Các Câu Hỏi Về Vòng Lặp (Loops)",
+      "question": "Công dụng của `break` và `continue` trong vòng lặp?",
+      "answer": "- **`break`:** Dừng vòng lặp **ngay lập tức** và thoát ra khỏi thân vòng lặp, bất kể điều kiện lặp có còn đúng hay không.\n- **`continue`:** Bỏ qua các đoạn code phía dưới trong chu trình lặp hiện tại và lập tức **chuyển sang lần lặp tiếp theo**."
+    },
+    {
+      "section": "3. Các Câu Hỏi Về Hàm (Functions)",
+      "question": "Cách định nghĩa và gọi hàm trong Python?",
+      "answer": "Bạn sử dụng từ khóa `def` để định nghĩa một hàm.\n```python\n# Định nghĩa hàm\ndef greet(name):\n    return f\"Hello, {name}!\"\n\n# Gọi hàm\nmessage = greet(\"Alice\")\nprint(message)  # In ra: Hello, Alice!\n```"
+    },
+    {
+      "section": "3. Các Câu Hỏi Về Hàm (Functions)",
+      "question": "Sự khác biệt giữa tham số mặc định (Default arguments) và `*args`, `**kwargs`?",
+      "answer": "- **Tham số mặc định:** Bạn gán sẵn giá trị cho tham số. Nếu người gọi không truyền vào, biến sẽ lấy giá trị mặc định.\n  ```python\n  def say_hello(name=\"Guest\"): ...\n  ```\n- **`*args`:** Cho phép hàm nhận một số lượng tham số vô hạn dưới dạng vị trí (Positional arguments). Trong hàm, `args` là một tuple.\n- **`**kwargs`:** Cho phép hàm nhận tham số vô hạn dưới dạng từ khóa (Keyword arguments). Trong hàm, `kwargs` là một dictionary."
+    },
+    {
+      "section": "4. Các Lỗi Cú Pháp Cơ Bản (Syntax & Common Errors)",
+      "question": "Tại sao Python báo lỗi `IndentationError`?",
+      "answer": "Không giống như C++ hay Java dùng cặp ngoặc nhọn `{}` để nhóm các khối lệnh, Python sử dụng **khoảng trắng (indentation)**. Lỗi này xuất hiện khi bạn thụt lề thụt lùi không đồng nhất (ví dụ: dòng thì dùng 4 dấu cách, dòng thì dùng tab, hoặc không thụt lề cho lệnh bên trong `if`/`for`/`def`).\n**Cách sửa:** Đảm bảo sử dụng đồng nhất 4 dấu cách (Space) cho mỗi cấp thụt lề."
+    },
+    {
+      "section": "4. Các Lỗi Cú Pháp Cơ Bản (Syntax & Common Errors)",
+      "question": "Lỗi `SyntaxError: invalid syntax` thường xuất phát từ đâu?",
+      "answer": "Lỗi này xảy ra khi trình biên dịch không thể hiểu dòng code. Các nguyên nhân phổ biến nhất:\n- Quên dấu hai chấm `:` ở cuối dòng định nghĩa `if`, `for`, `while`, `def`.\n- Quên đóng ngoặc đơn `)`, ngoặc vuông `]` hoặc ngoặc nhọn `}`.\n- Viết sai tên từ khóa (ví dụ: viết `Tru` thay vì `True`)."
+    },
+    {
+      "section": "4. Các Lỗi Cú Pháp Cơ Bản (Syntax & Common Errors)",
+      "question": "Làm sao để xử lý ngoại lệ (Exception) để chương trình không bị crash đột ngột?",
+      "answer": "Sử dụng khối lệnh `try...except`.\n```python\ntry:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print(\"Lỗi: Không thể chia cho 0!\")\n```"
+    }
+  ]
+}

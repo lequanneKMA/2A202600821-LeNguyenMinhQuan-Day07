@@ -1,0 +1,78 @@
+---
+category: "devops"
+difficulty: "intermediate"
+tags: ["git", "github", "version-control", "collaboration", "pull-request"]
+---
+
+# Git & GitHub FAQ
+
+Tài liệu này giải đáp các tình huống và câu hỏi kỹ thuật thường gặp nhất khi làm việc với Git và GitHub, đặc biệt là khi cộng tác trong nhóm.
+
+---
+
+## 1. Xử Lý Xung Đột (Merge Conflicts)
+
+### Q: Merge Conflict là gì và tại sao nó lại xảy ra?
+**A:** Merge Conflict (xung đột trộn mã) xảy ra khi hai (hoặc nhiều) người cùng sửa đổi **trên cùng một dòng code** của cùng một tệp (file), hoặc khi một người xóa một file mà người kia đang chỉnh sửa. Git không thể tự động quyết định xem nên giữ lại đoạn code nào, do đó nó đánh dấu sự xung đột và yêu cầu người lập trình tự giải quyết bằng tay.
+
+### Q: Làm thế nào để giải quyết Conflict một cách chuẩn xác?
+**A:** Quy trình chuẩn để xử lý conflict như sau:
+1. Khi chạy `git merge` hoặc `git pull` và gặp lỗi báo conflict, hãy kiểm tra danh sách file bị xung đột bằng lệnh: `git status`.
+2. Mở các file bị báo đỏ lên. Bạn sẽ thấy Git đánh dấu vùng xung đột bằng các ký hiệu:
+   ```text
+   <<<<<<< HEAD
+   (Code hiện tại ở nhánh của bạn)
+   =======
+   (Code mới kéo về từ nhánh khác)
+   >>>>>>> branch_name
+   ```
+3. Chỉnh sửa nội dung file: Xóa bỏ các dòng `<<<<<<<`, `=======`, `>>>>>>>` và giữ lại hoặc hợp nhất code sao cho đúng logic mà bạn mong muốn.
+4. Lưu file lại.
+5. Thêm các file đã giải quyết xong bằng lệnh: `git add <tên-file>`.
+6. Hoàn tất việc merge bằng lệnh: `git commit -m "Resolve merge conflicts in [file name]"`.
+
+---
+
+## 2. Sự Khác Biệt Giữa `git merge` và `git rebase`
+
+### Q: Cả `merge` và `rebase` đều dùng để gộp nhánh, vậy sự khác biệt cốt lõi là gì?
+**A:** 
+- **`git merge`**: 
+  - Sẽ tạo ra một "merge commit" mới để kết hợp lịch sử của hai nhánh lại với nhau.
+  - **Ưu điểm:** Giữ lại toàn bộ lịch sử nguyên gốc và thời gian thực hiện của từng commit. Cấu trúc lịch sử rẽ nhánh rõ ràng.
+  - **Nhược điểm:** Khi có quá nhiều nhánh, log sẽ trở nên rối rắm (hiện tượng "spaghetti history").
+- **`git rebase`**:
+  - Di chuyển "gốc" (base) của nhánh hiện tại sang điểm cuối cùng của nhánh mục tiêu, sau đó áp dụng lần lượt từng commit của bạn lên trên đó.
+  - **Ưu điểm:** Lịch sử commit sẽ thành một đường thẳng (linear history), cực kỳ gọn gàng và dễ đọc.
+  - **Nhược điểm:** Làm thay đổi lịch sử commit (viết lại mã hash của commit). **Cực kỳ nguy hiểm** nếu bạn rebase một nhánh đã được đẩy lên server (public branch) mà người khác đang sử dụng.
+
+### Q: Khi nào nên dùng `merge` và khi nào nên dùng `rebase`?
+**A:**
+- Dùng **`rebase`** khi bạn đang làm việc trên **nhánh cá nhân** (feature branch) và muốn cập nhật các thay đổi mới nhất từ nhánh `main` để làm gọn lịch sử trước khi tạo Pull Request.
+- Dùng **`merge`** khi bạn gộp một nhánh cá nhân vào **nhánh chung** (`main` hoặc `develop`). Tuyệt đối không bao giờ chạy rebase trên nhánh chung.
+
+---
+
+## 3. Tạo Pull Request (PR) Trên GitHub
+
+### Q: Pull Request (PR) là gì?
+**A:** Pull Request (hay Merge Request trong GitLab) là một tính năng trên GitHub. Đây là một "lời đề nghị" từ bạn, yêu cầu những người quản lý dự án xem xét (review) các thay đổi mã nguồn mà bạn đã đẩy lên nhánh của mình, và nếu ổn, họ sẽ gộp (merge) nhánh của bạn vào nhánh chính của dự án.
+
+### Q: Các bước chuẩn để tạo một Pull Request là gì?
+**A:**
+1. Đảm bảo bạn đang làm việc trên một nhánh riêng rẽ: `git checkout -b feature/my-new-feature`
+2. Hoàn thành công việc, commit cẩn thận: `git commit -m "Add new feature"`
+3. Đẩy nhánh của bạn lên GitHub: `git push origin feature/my-new-feature`
+4. Lên trang GitHub của repository, một thông báo màu xanh lá cây "Compare & pull request" sẽ tự động xuất hiện. Hãy nhấn vào đó.
+5. Điền thông tin PR:
+   - **Title (Tiêu đề):** Ngắn gọn, mô tả tính năng hoặc bug fix.
+   - **Description (Mô tả):** Liệt kê chi tiết những gì bạn đã làm, cách để tester có thể kiểm tra code của bạn, và đính kèm Issue ID nếu có (ví dụ: `Fixes #12`).
+6. Chọn Reviewers (những người sẽ review code của bạn).
+7. Nhấn "Create pull request".
+
+### Q: Điều gì cần làm nếu Reviewer yêu cầu sửa đổi (Request Changes)?
+**A:** 
+1. Quay lại máy tính cá nhân, tiếp tục sửa code ở đúng nhánh đó.
+2. Commit các thay đổi và `git push` lên.
+3. PR trên GitHub sẽ **tự động** cập nhật thêm các commit mới của bạn. Bạn không cần phải tạo một PR mới.
+4. Reply lại trên GitHub báo cho Reviewer biết bạn đã sửa xong.
