@@ -1,8 +1,8 @@
 # Báo Cáo Lab 7: Embedding & Vector Store
 
-**Họ tên:** [Tên sinh viên]
-**Nhóm:** [Tên nhóm]
-**Ngày:** [Ngày nộp]
+**Họ tên:** Lê Nguyễn Minh Quân
+**Nhóm:** Bills
+**Ngày:** 05/06/2026
 
 ---
 
@@ -11,29 +11,30 @@
 ### Cosine Similarity (Ex 1.1)
 
 **High cosine similarity nghĩa là gì?**
-> *Viết 1-2 câu:*
+> Hai đoạn văn bản có vector trỏ về cùng một hướng trong không gian đa chiều, nghĩa là chúng mang ý nghĩa hoặc chủ đề tương đồng nhau, bất kể việc sử dụng từ vựng khác nhau hay độ dài ngắn khác biệt.
 
 **Ví dụ HIGH similarity:**
-- Sentence A:
-- Sentence B:
-- Tại sao tương đồng:
+- Sentence A: "Con mèo màu vàng đang nằm ngủ trên thảm."
+- Sentence B: "Một chú mèo mướp đang say giấc trên tấm thảm."
+- Tại sao tương đồng: Dùng từ ngữ khác nhau (mèo vàng/mèo mướp, nằm ngủ/say giấc) nhưng cùng mô tả một bối cảnh.
 
 **Ví dụ LOW similarity:**
-- Sentence A:
-- Sentence B:
-- Tại sao khác:
+- Sentence A: "Con mèo màu vàng đang nằm ngủ trên thảm."
+- Sentence B: "Ngân hàng trung ương vừa tăng lãi suất cơ bản."
+- Tại sao khác: Nội dung hoàn toàn không liên quan, một câu về đời sống vật nuôi, một câu về tài chính kinh tế.
 
 **Tại sao cosine similarity được ưu tiên hơn Euclidean distance cho text embeddings?**
-> *Viết 1-2 câu:*
+> Vì Euclidean đo khoảng cách tuyệt đối nên bị ảnh hưởng lớn bởi độ lớn (magnitude) như độ dài văn bản. Trong khi đó, Cosine chỉ đo góc (angle), giúp nhận diện sự tương đồng ngữ nghĩa dù văn bản dài ngắn khác nhau.
 
 ### Chunking Math (Ex 1.2)
 
 **Document 10,000 ký tự, chunk_size=500, overlap=50. Bao nhiêu chunks?**
-> *Trình bày phép tính:*
-> *Đáp án:*
+> *Trình bày phép tính:* num_chunks = ceil((10000 - 50) / (500 - 50)) = ceil(9950 / 450) = 22.11
+> *Đáp án:* 23 chunks.
 
 **Nếu overlap tăng lên 100, chunk count thay đổi thế nào? Tại sao muốn overlap nhiều hơn?**
-> *Viết 1-2 câu:*
+> *Trả lời:* Nếu overlap = 100 -> ceil((10000 - 100) / (500 - 100)) = ceil(9900 / 400) = 24.75 -> 25 chunks (số chunk tăng lên). 
+> *Tại sao:* Overlap lớn giúp giữ trọn vẹn ngữ cảnh (context) ở ranh giới cắt, tránh việc một câu hay một ý quan trọng bị chém đứt đôi khiến mô hình LLM không hiểu được trọn vẹn ý nghĩa.
 
 ---
 
